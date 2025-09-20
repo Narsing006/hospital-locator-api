@@ -23,9 +23,10 @@
 		<app.objectStoreV2>true</app.objectStoreV2>
 		<anypoint.username>Narsinga</anypoint.username>
 		<anypoint.password>Narsing@006</anypoint.password>
-		<anypoint.environment>dev</anypoint.environment>
+		<anypoint.environment>qa</anypoint.environment>
 		<cloudhub.region>us-east-1</cloudhub.region>
-		<api.id>20518865</api.id>
+		<connectedAppClientId>98054cbb742b4478bb11281ee3d6243a</connectedAppClientId>
+        <connectedAppClientSecret>8AE942C66Dd1499BA1c7FC794D32C465</connectedAppClientSecret>
 	</properties>
 
 	<build>
@@ -54,7 +55,7 @@
 						<username>Narsinga</username>
 						<password>Narsing@006</password>
 						<applicationName>hospital-locator-api</applicationName>
-						<environment>dev</environment>
+						<environment>qa</environment>
 						<region>us-east-1</region>
 						<workers>1</workers>
 						<workerType>Micro</workerType>
@@ -62,7 +63,7 @@
 						<properties>
 							<http.port>8081</http.port>
 							<api.id>20518865</api.id>
-							<env>dev</env>
+							<env>qa</env>
 						</properties>
 					</cloudHubDeployment>
 				</configuration>
