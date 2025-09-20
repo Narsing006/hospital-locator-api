@@ -1,0 +1,54 @@
+name: MuleSoft CI/CD Deployment (QA)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-qa:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # Build artifact
+      - name: Build Mule App
+        run: mvn clean package -DskipTests
+
+      # Run MUnit tests
+      - name: Run MUnit Tests
+        run: mvn test
+
+      # Save build artifact for promotion
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mule-artifact
+          path: target/*.jar
+
+      # Deploy to QA
+      - name: Deploy to CloudHub QA
+        run: |
+          mvn mule:deploy \
+            -DmuleDeploy \
+            -DconnectedAppClientId=${{ secrets.ANYPOINT_CLIENT_ID }} \
+            -DconnectedAppClientSecret=${{ secrets.ANYPOINT_CLIENT_SECRET }} \
+            -Danypoint.environment=qa \
+            -Dapp.name=hospital-locator-api
