@@ -1,16 +1,20 @@
 name: Deploy Mule App to QA
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Build and Test Mule App"]
+    types:
+      - completed
 
 jobs:
-  build-and-deploy-qa:
+  deploy-to-qa:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    environment:
+      name: qa
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up JDK 8
@@ -27,15 +31,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Build with Maven
-        run: mvn clean package -DskipTests
-
-      # Save artifact for PROD
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
         with:
           name: mule-artifact
-          path: target/*.jar
+          path: target/
 
       - name: Deploy to CloudHub QA
         run: |
