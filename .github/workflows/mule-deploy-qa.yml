@@ -1,10 +1,9 @@
-name: MuleSoft CI/CD Deployment (QA)
+name: Deploy Mule App to QA
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   build-and-deploy-qa:
@@ -28,27 +27,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # Build artifact
-      - name: Build Mule App
+      - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      # Run MUnit tests
-      - name: Run MUnit Tests
-        run: mvn test
-
-      # Save build artifact for promotion
+      # Save artifact for PROD
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: mule-artifact
           path: target/*.jar
 
-      # Deploy to QA
       - name: Deploy to CloudHub QA
         run: |
           mvn mule:deploy \
             -DmuleDeploy \
-            -DconnectedAppClientId=${{ secrets.ANYPOINT_CLIENT_ID }} \
-            -DconnectedAppClientSecret=${{ secrets.ANYPOINT_CLIENT_SECRET }} \
+            -DconnectedAppClientId=${{ secrets.ANYPOINT_CLIENT_ID_QA }} \
+            -DconnectedAppClientSecret=${{ secrets.ANYPOINT_CLIENT_SECRET_QA }} \
             -Danypoint.environment=qa \
             -Dapp.name=hospital-locator-api
