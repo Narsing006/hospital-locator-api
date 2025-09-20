@@ -35,7 +35,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.ref_name }}   # dev, qa, or prod
+      name: dev   # dev, qa, or prod
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
@@ -56,4 +56,4 @@ jobs:
             -Danypoint.username=Narsinga \
             -Danypoint.password=Narsing@006 \
             -DskipTests \
-            -Danypoint.environment=${{ github.ref_name }}
+            -Danypoint.environment=dev
