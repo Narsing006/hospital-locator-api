@@ -35,7 +35,7 @@ jobs:
         run: mvn clean package -DmuleDeploy -B
 
       # Deploy to CloudHub
-      - name: Deploy to CloudHub
+      - name: Deploy to CloudHub 2.0
         env:
           ANYPOINT_USERNAME: Narsinga
           ANYPOINT_PASSWORD: Narsing@006
