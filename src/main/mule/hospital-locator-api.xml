@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:snowflake="http://www.mulesoft.org/schema/mule/snowflake" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:snowflake="http://www.mulesoft.org/schema/mule/snowflake" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
 http://www.mulesoft.org/schema/mule/snowflake http://www.mulesoft.org/schema/mule/snowflake/current/mule-snowflake.xsd
-http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
     <http:listener-config name="hospital-locator-api-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
@@ -137,18 +138,43 @@ output application/json
     </flow>
 	<sub-flow name="hospital-locator-api-email-flow" doc:id="357d357a-78d4-41b0-845c-8ac8cc33f5af" >
 		<logger level="INFO" doc:name="Before email sent" doc:id="c352e2e1-3fe6-4c0e-9d80-6b013230c102" message="------------------------------Before email sent-------------------------------"/>
-		<ee:transform doc:name="Transform Message" doc:id="6b974b8b-04b7-4e53-a275-e201cc05c989" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
-output text/plain
----
-"Hi "++ vars.requestedPayload.firstName as String ++ " your registration is completed successfully completed and your patient_id is "++ vars.Patient_id]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-		<email:send doc:name="Send" doc:id="fc197601-465a-4e2b-8435-21cdb6181e4d" config-ref="Email_SMTP" fromAddress="narsingbeesett06@gmail.com" subject='#[vars.requestedPayload.firstName as String ++ " Registration completed successfully"]'>
+		<set-variable value="#[vars.requestedPayload.firstName as String]" doc:name="firstName" doc:id="8800447d-07a1-4421-ad2e-3491f5c07cd7" variableName="firstName"/>
+		<set-variable value='#[%dw 2.0&#10;output text/plain&#10;---&#10;"Hi " ++ vars.requestedPayload.firstName as String ++" your registration is completed successfully completed and your patient_id is "++ vars.Patient_id]' doc:name="emailBody" doc:id="37e1eba1-85d3-4e24-8482-4d7911b563ae" variableName="emailBody" />
+		<parse-template doc:name="Parse Template" doc:id="09929072-3dbe-4646-a301-692fa4bf07c5" >
+			<content >&lt;html&gt;
+&lt;head&gt;
+    &lt;style&gt;
+        body {
+            text-align: center;
+        }
+
+        table {
+            margin: 0 auto;
+            height: 20vh;
+            width: 40vh;
+        }
+
+        h1 {
+            color: green;
+        }
+        h6 {
+            color: red;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Welcome&lt;/h1&gt;
+    &lt;h3&gt;#[vars.emailBody]&lt;/h3&gt;
+    
+    &lt;h6&gt;Note: This is an automated email. Please do not reply to this email.&lt;/h6&gt;
+&lt;/body&gt;
+&lt;/html&gt;</content>
+		</parse-template>
+		<email:send doc:name="Send" doc:id="fc197601-465a-4e2b-8435-21cdb6181e4d" config-ref="Email_SMTP" fromAddress="narsingbeesett06@gmail.com" subject='#[vars.firstName ++ " Registration completed successfully"]'>
 			<email:to-addresses >
 				<email:to-address value="#[vars.email]" />
 			</email:to-addresses>
+			<email:body contentType="text/html" encoding="UTF-8"/>
 		</email:send>
 		<logger level="INFO" doc:name="After email sent " doc:id="c499b380-88fd-41b8-ac92-6d3c58691f0c" message="----------------------------email sent successfully-----------------------------------"/>
 	</sub-flow>
@@ -196,16 +222,16 @@ var hospital_id = (attributes.queryParams.hospital_id default "") as String
 ---
 if (sizeOf(payload) > 0)
 {
-    status: "success",
-    hospital_id: vars.inputPayload,
-    message: "Hospital services details retrieved successfully",
-    data: payload
+    "status": "success",
+    "hospital_id": vars.hospital_id,
+    "message": "Hospital services details retrieved successfully",
+    "data": payload
 }
 else
 {
-    status: "failure",
-    message: "No hospital services found for the requested hospital_id: " ++ hospital_id,
-    data: []
+    "status": "failure",
+    "message": "No hospital services found for the requested hospital_id",
+    "data": []
 }
 ]]></ee:set-payload>
 			</ee:message>
@@ -276,23 +302,24 @@ else
     <flow name="post:\patients:application\json:hospital-locator-api-config">
         <set-variable value="#[payload]" doc:name="requestedPayload" doc:id="beabad49-7ceb-4698-b8da-bbf146b21e01" variableName="requestedPayload"/>
 		<set-variable value="#[payload.gmail]" doc:name="email" doc:id="c042fa2b-7b05-4c5d-ab89-58842011b87f" variableName="email"/>
+		<choice doc:name="Choice" doc:id="346da34a-2a81-49ac-89a9-0cc6e0a2192e" >
+			<when expression="#[payload.firstName == null or payload.LastName == null or payload.age == null or payload.gender == null or payload.phoneNumber ==null or payload.address == null or payload.gmail == null]">
+				<raise-error doc:name="Raise error" doc:id="3db8bb52-6bb1-45bf-8100-72dca986b41e" type="'HTTP:INVALID_REQUEST'" description='REQUIRED_KEY_FIELDS_MISSING'/>
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="valid data" doc:id="14ec9055-df8d-4811-8e45-b6a40cefbc92" message="valid data"/>
+			</otherwise>
+		</choice>
 		<ee:transform doc:name="patient_id creation">
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 
-var fname = (payload.firstName default "") as String
-var lname = (payload.lastName default "") as String
-var first3 = 
-    if (sizeOf(fname) >= 3) 
-        upper(fname[0 to 2]) 
-    else 
-        upper(fname)
-var last3 = 
-    if (sizeOf(lname) >= 3) 
-        upper(lname[(sizeOf(lname) - 3) to (sizeOf(lname) - 1)]) 
-    else 
-        upper(lname)
+var fname = upper(trim(payload.firstName default "")) 
+var lname = upper(trim(payload.LastName default "")) 
+
+var first3 = if (sizeOf(fname) >= 3) fname[0 to 2] else fname
+var last3  = if (sizeOf(lname) >= 3) lname[(sizeOf(lname) - 3) to (sizeOf(lname) - 1)] else lname
 var randomNum = (floor(random() * 9000) + 1000) as String
 
 ---
@@ -300,15 +327,16 @@ var randomNum = (floor(random() * 9000) + 1000) as String
   patient_id: first3 ++ randomNum ++ last3,
   status: "success",
   patientDetails: payload
-}]]></ee:set-payload>
+}
+]]></ee:set-payload>
             </ee:message>
         </ee:transform>
-		<set-variable value="#[payload.patient_id]" doc:name="Patient_id" doc:id="a88db528-8071-40ef-9c6c-e449e3713025" variableName="Patient_id"/>
-		<snowflake:insert doc:name="Insert" doc:id="681d1e32-4121-4b98-a87f-ccbcfb49139e" config-ref="Snowflake_Config">
-			<snowflake:sql ><![CDATA[INSERT INTO patients (patient_id, firstName, lastName, age, gender, phoneNumber, address, gmail)
+		<set-variable value="#[payload.patient_id]" doc:name="Patient_id" doc:id="a88db528-8071-40ef-9c6c-e449e3713025" variableName="Patient_id" />
+		<snowflake:insert doc:name="Insert" doc:id="98d52575-6def-4333-8411-3af67b0bb8ab" config-ref="Snowflake_Config">
+			<snowflake:sql><![CDATA[INSERT INTO patients (patient_id, firstName, lastName, age, gender, phoneNumber, address, gmail)
 VALUES (:patient_id, :firstName, :lastName, :age, :gender, :phoneNumber, :address, :gmail);]]></snowflake:sql>
-			<snowflake:input-parameters ><![CDATA[#[%dw 2.0
-output application/java
+			<snowflake:input-parameters><![CDATA[#[%dw 2.0
+output application/json
 ---
 {
 	patient_id: vars.Patient_id,

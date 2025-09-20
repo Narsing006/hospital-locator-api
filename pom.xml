@@ -15,6 +15,17 @@
 
 		<app.runtime>4.8.1</app.runtime>
 		<mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
+		<munit.version>3.3.0</munit.version>
+		<!-- CloudHub Deployment Properties -->
+		<app.name>hospital-locator-api</app.name>
+		<app.workers>1</app.workers>
+		<app.worker.type>Micro</app.worker.type>
+		<app.objectStoreV2>true</app.objectStoreV2>
+		<anypoint.username>${env.ANYPOINT_USERNAME}</anypoint.username>
+		<anypoint.password>${env.ANYPOINT_PASSWORD}</anypoint.password>
+		<anypoint.environment>Sandbox</anypoint.environment>
+		<cloudhub.region>us-east-1</cloudhub.region>
+		<api.id>${env.API_ID}</api.id>
 	</properties>
 
 	<build>
@@ -36,12 +47,59 @@
 							<artifactId>snowflake-jdbc</artifactId>
 						</sharedLibrary>
 					</sharedLibraries>
+					<classifier>mule-application</classifier>
+					<cloudHubDeployment>
+						<uri>https://anypoint.mulesoft.com</uri>
+						<muleVersion>${app.runtime}</muleVersion>
+						<username>${anypoint.username}</username>
+						<password>${anypoint.password}</password>
+						<applicationName>${app.name}</applicationName>
+						<environment>${anypoint.environment}</environment>
+						<region>${cloudhub.region}</region>
+						<workers>${app.workers}</workers>
+						<workerType>${app.worker.type}</workerType>
+						<objectStoreV2>${app.objectStoreV2}</objectStoreV2>
+						<properties>
+							<http.port>8081</http.port>
+							<api.id>${api.id}</api.id>
+							<env>${anypoint.environment}</env>
+						</properties>
+					</cloudHubDeployment>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.mulesoft.munit.tools</groupId>
+				<artifactId>munit-maven-plugin</artifactId>
+				<version>${munit.version}</version>
+				<executions>
+					<execution>
+						<id>test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>test</goal>
+							<goal>coverage-report</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<coverage>
+						<runCoverage>true</runCoverage>
+						<formats>
+							<format>html</format>
+						</formats>
+					</coverage>
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
 
 	<dependencies>
+		<dependency>
+			<groupId>com.mulesoft.modules</groupId>
+			<artifactId>mule-secure-configuration-property-module</artifactId>
+			<version>1.2.5</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
 		<dependency>
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-http-connector</artifactId>
@@ -75,6 +133,38 @@
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-email-connector</artifactId>
 			<version>1.7.3</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.munit</groupId>
+			<artifactId>munit-runner</artifactId>
+			<version>3.3.0</version>
+			<classifier>mule-plugin</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.munit</groupId>
+			<artifactId>munit-tools</artifactId>
+			<version>3.3.0</version>
+			<classifier>mule-plugin</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.weave</groupId>
+			<artifactId>assertions</artifactId>
+			<version>1.2.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.modules</groupId>
+			<artifactId>mule-secure-configuration-property-module</artifactId>
+			<version>1.2.7</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.modules</groupId>
+			<artifactId>mule-json-module</artifactId>
+			<version>2.5.4</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 	</dependencies>
