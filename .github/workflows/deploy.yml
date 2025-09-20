@@ -1,0 +1,39 @@
+name: Deploy Mule App to CloudHub
+
+on:
+  push:
+    branches:
+      - main   # or your deployment branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Set up Java & Maven
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # 3. Build & Deploy
+      - name: Build and Deploy to CloudHub
+        run: |
+          mvn clean deploy -DmuleDeploy \
+            -Danypoint.clientId="98054cbb742b4478bb11281ee3d6243a"
+            -Danypoint.clientSecret= "8AE942C66Dd1499BA1c7FC794D32C465"
+            -Danypoint.environment= "qa"
+            -DskipTests
